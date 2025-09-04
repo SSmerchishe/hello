@@ -1,3 +1,0 @@
-/home/smerchishe/PRJ/helloworld/build/CMakeFiles/hello.dir
-/home/smerchishe/PRJ/helloworld/build/CMakeFiles/edit_cache.dir
-/home/smerchishe/PRJ/helloworld/build/CMakeFiles/rebuild_cache.dir
