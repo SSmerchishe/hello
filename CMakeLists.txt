@@ -4,3 +4,9 @@ project(helloworld C)
 set(CMAKE_C_STANDARD 11)
 
 add_executable(hello hello.c)
+
+add_custom_target(run
+    COMMAND hello
+    DEPENDS hello
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
