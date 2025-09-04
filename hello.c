@@ -1,6 +1,6 @@
 #include <stdio.h>
 
 int main() {
-    printf("0\n1\n2\n3\n4\n...");
+    printf("V obshem. Ya podcluchilsya cherez VSCode po SSH k svoei VW.\n Chtoby delat' izmeneniya s localnoy mashiny.\n Zachem? ya XZ\n");
     return 0;
 }
