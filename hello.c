@@ -15,8 +15,9 @@ int main(int argc, char *argv[]) {
         key_output(argc, argv, "--version", PROJECT_VERSION);
         key_output(argc, argv, "--githash", GIT_HASH);
         key_output(argc, argv, "--help", "Created by SSmerchishe.\
-            \nAvailable keys:\n\t--help - Help; \
-            \n\t--version - Version.\n");
+            \nAvailable keys:\n\t--help - Help;\
+            \n\t--version - Version.\
+            \n\t--githash - Git Hash.\n");
         return res == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
     }
 
