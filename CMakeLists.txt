@@ -13,4 +13,4 @@ execute_process(
     OUTPUT_VARIABLE GIT_HASH
 )
 
-add_definitions(-DGIT_HASH="${GIT_HASH}")
+target_compile_definitions(hello PRIVATE GIT_HASH=\"${GIT_HASH}\")
