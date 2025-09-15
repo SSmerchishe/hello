@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         return res == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
     }
 
-	printf("hello\n");
+	printf("hello!\n");
 
 	return res == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
