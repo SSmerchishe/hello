@@ -17,7 +17,4 @@ typedef enum { KEY_UNKNOW, KEY_HELP, KEY_VERSION, KEY_GIT_HASH } Keys;
 
 //Прототипы функций
 Keys get_key(const char *key);
-void print_help();
-void print_version();
-void print_githash();
-void print_default_msg();
+int keys_headler(int argc, char *argv[]);
