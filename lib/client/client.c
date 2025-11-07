@@ -1,4 +1,5 @@
 #include "client.h"
+#include "error.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,13 +11,14 @@
 #include <openssl/ssl.h> // openssl для поддержки tls-шифрования (работает поверх tcp)
 #include <openssl/err.h>
 
-static void append_data(char **data, size_t *size, const char *buf, size_t len)
+static api_err_t append_data(char **data, size_t *size, const char *buf,
+			     size_t len)
 {
 	char *new_ptr = realloc(*data, *size + len + 1);
 	if (!new_ptr) {
 		fprintf(stderr, "Out of memory\n");
 		free(*data);
-		exit(1);
+		return API_MEM_ERR;
 	}
 
 	*data = new_ptr;
@@ -25,7 +27,7 @@ static void append_data(char **data, size_t *size, const char *buf, size_t len)
 	(*data)[*size] = '\0';
 }
 
-void http_get(const char *url, char **out_data, size_t *out_size)
+api_err_t http_get(const char *url, char **out_data, size_t *out_size)
 {
 	/*
 	void http_get_example:
@@ -59,7 +61,7 @@ void http_get(const char *url, char **out_data, size_t *out_size)
 	if (status != 0) {
 		fprintf(stderr, "getaddrinfo error: %s\n",
 			gai_strerror(status));
-		exit(1);
+		return API_PROTO_ERR;
 	}
 
 	sockete = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
@@ -71,8 +73,9 @@ void http_get(const char *url, char **out_data, size_t *out_size)
 	*/
 	if (sockete < 0) {
 		perror("socket");
+		fprintf(stderr, "socket error");
 		freeaddrinfo(res);
-		exit(1);
+		return API_NET_ERR;
 	}
 
 	//bind(sockete, res->ai_addr, res->ai_addrlen);
@@ -90,10 +93,10 @@ void http_get(const char *url, char **out_data, size_t *out_size)
 		int addrlen - длина адреса в байтах
 	*/
 	if (connecte != 0) {
-		perror("connect");
+		fprintf(stderr, "connect error");
 		close(sockete);
 		freeaddrinfo(res);
-		exit(1);
+		return API_NET_ERR;
 	}
 	freeaddrinfo(res); //освобождение связанного списка
 
@@ -114,8 +117,9 @@ void http_get(const char *url, char **out_data, size_t *out_size)
 	*/
 	if (sende < 0) {
 		perror("send");
+		fprintf(stderr, "send error");
 		close(sockete);
-		exit(1);
+		return API_NET_ERR;
 	}
 
 	// Читаем и печатаем ответ
@@ -129,12 +133,12 @@ void http_get(const char *url, char **out_data, size_t *out_size)
 
 	if (*out_data == NULL) {
 		fprintf(stderr, "No data received\n");
-		exit(1);
+		return API_NET_ERR;
 	}
 }
 
-void https_get(const char *url, const char *path, char **out_data,
-	       size_t *out_size)
+api_err_t https_get(const char *url, const char *path, char **out_data,
+		    size_t *out_size)
 {
 	/*void https_get_example:
 		const char *url		// напр. «www.example.com» или IP
@@ -149,7 +153,7 @@ void https_get(const char *url, const char *path, char **out_data,
 		SSL_CTX_new(TLS_client_method()); //инициализация контекста
 	if (!ctx) {
 		fprintf(stderr, "Не удалось создать SSL context!\n");
-		exit(1);
+		return API_NET_ERR;
 	}
 
 	*out_data = NULL;
@@ -177,7 +181,7 @@ void https_get(const char *url, const char *path, char **out_data,
 	if (status != 0) {
 		fprintf(stderr, "getaddrinfo error: %s\n",
 			gai_strerror(status));
-		exit(1);
+		return API_NET_ERR;
 	}
 
 	sockete = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
@@ -188,9 +192,9 @@ void https_get(const char *url, const char *path, char **out_data,
 	return - дескриптор сокета
 	*/
 	if (sockete < 0) {
-		perror("socket");
+		fprintf(stderr, "socket error");
 		freeaddrinfo(res);
-		exit(1);
+		return API_NET_ERR;
 	}
 	freeaddrinfo(res); //освобождение связанного списка
 
@@ -209,17 +213,17 @@ void https_get(const char *url, const char *path, char **out_data,
 		int addrlen - длина адреса в байтах
 	*/
 	if (connecte != 0) {
-		perror("connect");
+		fprintf(stderr, "connect error");
 		printf("Ошибка при создании socket\n");
 		close(sockete);
 		freeaddrinfo(res);
-		exit(1);
+		return API_NET_ERR;
 	}
 
 	SSL *ssl = SSL_new(ctx); //инициирует соединение с сервером
 	if (!ssl) {
 		fprintf(stderr, "Не удалось создать SSL_new\n");
-		exit(1);
+		return API_NET_ERR;
 	}
 
 	if (!SSL_set_tlsext_host_name(
@@ -228,7 +232,7 @@ void https_get(const char *url, const char *path, char **out_data,
 	{
 		fprintf(stderr,
 			"Не удалось создать SSL_set_tlsext_host_name\n");
-		exit(1);
+		return API_NET_ERR;
 	}
 
 	SSL_set_fd(ssl, sockete); //подключение TCP-сокета к SSL
@@ -258,7 +262,7 @@ void https_get(const char *url, const char *path, char **out_data,
 
 	if (*out_data == NULL) {
 		fprintf(stderr, "No data received\n");
-		exit(1);
+		return API_NET_ERR;
 	}
 
 	SSL_shutdown(ssl);
